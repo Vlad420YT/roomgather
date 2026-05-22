@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roomgather – Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Admin Panel</h1>
+        
+        <div id="adminContent" style="display: none;">
+            <div class="admin-actions">
+                <button id="adminExportBtn" class="admin-btn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAnElEQVRYCe2SUQrAMAhD17H7X7mjPyVItMoGIrgvN7NWXzLmnFfmc2devu4uP8Dy75OHpQng5liHYlWWANuYfTvSKEnA2tTqURrlCHg29Gg2jXQCzx7FVwyQyU2xBzK7TCfQA7AMSG+ZiZrf4X/bAmYBItdQowZrTa9a0xacLEC8stZwS535fhpA9c48NdDsDDQBFsJf0u3NYVvwAiToEkKuU7suAAAAAElFTkSuQmCC" width="20" height="20" alt="Export">
+                    Export .txt
+                </button>
+                <button id="adminClearAllBtn" class="admin-btn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA8ElEQVRYCdWW4Q7DIAiE16Xv/8pu9oex9IADTNxMmijC8Z02TY/W2mvneO9s3nv/PUC/v9IdVk5gbjzPQ7daAQg10pKzAMgximl9RzwLMASqkwyA5dTag6wZACiUDUYBGIdMzuCNAozCVZMIAHJ2fEH6IwfKlTnXOgIABapBFoB2NAFRNSzApLt2ygBQThQst5YBULTXhD0A1wGBYWp4AIR+LcUCMMmDbVWtMygk01VhmaittRMoC4OGUFMDAPUwpH2KYTIKIgBIiooTsYf2z70DD8KES6/k1gNdgSewdH87gHwH0M/FUsdSbPsJbAf4AESnHywTqd8JAAAAAElFTkSuQmCC" width="20" height="20" alt="Warning">
+                    Clear All
+                </button>
+                <button id="backToChatBtn" class="admin-btn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAp0lEQVRYCe2UUQrAIAxD59j9r+zwI+CKhnaLyKD+VLBtnqlYaq3HznXuFG/aCZAOpAO/c6D9WtKfK+KAVBgf4IUNiUuEoccAlgoDIDIC1EjjyAHPzT05M9DSH1gHvjTu+7r3FsBdqEq0AA97VCKsz+gNAIKNAzmst+vMOuAqUiYxgHZL2U1n0AwANUtBPAA9CPayOHqErLl8JBEHGNjrswRIB9KB7Q7c5tMMSBKujxsAAAAASUVORK5CYII=" width="20" height="20" alt="Back">
+                    Back
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password modal -->
+    <div id="passwordModal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAeUlEQVRYCe2WsQrAIAxEa+n//3KKg5BB7UUKtzwXRaKXvNyQFhGXc91O8a5tT+ApEKj2qil/qwSq4l1beqMmoBRzFFNpwRD4QitVPj6zEyABO4GdCVdmWt0PX+U9x07NaydAAhCAAAQgAAEIQGA3EU0nmDzu/HGmBS9gGQpCFwPIgQAAAABJRU5ErkJggg==" width="30" height="30" alt="Lock">
+                </span>
+                <h2>Admin Access</h2>
+            </div>
+            <div class="modal-body">
+                <input type="password" id="adminPassword" placeholder="Enter password" class="password-input">
+            </div>
+            <div class="modal-footer">
+                <button id="passwordSubmitBtn" class="modal-confirm">Submit</button>
+                <button id="passwordCancelBtn" class="modal-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear all confirmation modal -->
+    <div id="clearAllModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA8ElEQVRYCdWW4Q7DIAiE16Xv/8pu9oex9IADTNxMmijC8Z02TY/W2mvneO9s3nv/PUC/v9IdVk5gbjzPQ7daAQg10pKzAMgximl9RzwLMASqkwyA5dTag6wZACiUDUYBGIdMzuCNAozCVZMIAHJ2fEH6IwfKlTnXOgIABapBFoB2NAFRNSzApLt2ygBQThQst5YBULTXhD0A1wGBYWp4AIR+LcUCMMmDbVWtMygk01VhmaittRMoC4OGUFMDAPUwpH2KYTIKIgBIiooTsYf2z70DD8KES6/k1gNdgSewdH87gHwH0M/FUsdSbPsJbAf4AESnHywTqd8JAAAAAElFTkSuQmCC" width="30" height="30" alt="Warning">
+                </span>
+                <h2>Clear All Messages?</h2>
+            </div>
+            <div class="modal-body">
+                <p>This action cannot be undone. All messages will be permanently deleted from everyone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="clearAllCancelBtn" class="modal-cancel">Cancel</button>
+                <button id="clearAllConfirmBtn" class="modal-confirm">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wrong password modal (custom, no alert) -->
+    <div id="wrongPasswordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA8ElEQVRYCdWW4Q7DIAiE16Xv/8pu9oex9IADTNxMmijC8Z02TY/W2mvneO9s3nv/PUC/v9IdVk5gbjzPQ7daAQg10pKzAMgximl9RzwLMASqkwyA5dTag6wZACiUDUYBGIdMzuCNAozCVZMIAHJ2fEH6IwfKlTnXOgIABapBFoB2NAFRNSzApLt2ygBQThQst5YBULTXhD0A1wGBYWp4AIR+LcUCMMmDbVWtMygk01VhmaittRMoC4OGUFMDAPUwpH2KYTIKIgBIiooTsYf2z70DD8KES6/k1gNdgSewdH87gHwH0M/FUsdSbPsJbAf4AESnHywTqd8JAAAAAElFTkSuQmCC" width="30" height="30" alt="Warning">
+                </span>
+                <h2>Access Denied</h2>
+            </div>
+            <div class="modal-body">
+                <p>Incorrect password. Please try again.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="wrongPasswordOkBtn" class="modal-confirm">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

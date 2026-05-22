@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Roomgather</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header" id="mainHeader">
+            <div class="header-left">
+                <h1>Roomgather</h1>
+                <p class="tagline">Rooms for text, voice & more</p>
+            </div>
+            <div class="header-actions">
+                <button class="search-icon-btn" id="searchIconBtn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAvklEQVRYCe2WQRKAIAhFten+V7Zw+i0MAw20hS2ycRIez4aMKaUw89pmJqfcOwPQqyQyscSpXxkoK9dWhHUYteuynV8ZwH41VXAuwvswgDiqcbqBBbAMLAPLwNvfEB1O6mhdHRBBrbdAC438ITInok8VXZHVIFYGyoTqIrhvoAx262p8IAgxlpUBYuOSiSYsAbogrAGaITwAmiC8ANQQngAqCG8AEWIEQA2C5sMogCoE1wkzmdPt0axGGmBrOgBHIRdJWi8TtAAAAABJRU5ErkJggg==" width="24" height="24" alt="Search">
+                </button>
+                <button class="settings-icon-btn" id="settingsIconBtn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA/UlEQVRYCe2WwQ7DMAhD22n//8tZmRoJBRMc2ood1lNFHWNeOHRvrW2Vz6uyufR+XwgwotszXj9J4JbJFI2pH0NgNFDe4Wt4lgkQdrkiYJcwnOQIwWhMVkQgtc3GGReMt0egC1NTgd7dz3xCBIzoyUJ5AO8KoqE9pMtXliHgNZfQs29wKE1gOT10xEXk/Q2bIYBbJKv/AOUE9BKiDUbLIzWklS1Aeql7+vQfkddImi095VdQHkDvgEZ3G+LTtPuZXUAEulgHuuvdeHsExoYm+SEYzRjN6LshAkb0ZIEJgCZjM4Vn0RWEh9jup27qxxBY7LcmRwRYh+lkrEk5gQ9f0xhWTd/6OwAAAABJRU5ErkJggg==" width="24" height="24" alt="Settings">
+                </button>
+            </div>
+        </div>
+
+        <div class="header search-header" id="searchHeader" style="display:none;">
+            <input type="text" id="searchInput" placeholder="Search messages...">
+            <button id="clearSearchBtn" class="clear-search">✕</button>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="bottom-bar">
+            <div id="replyIndicator" class="reply-indicator" style="display:none;">
+                <span class="reply-text">Replying to: <span id="replyPreviewText"></span></span>
+                <button id="cancelReplyBtn" class="cancel-reply">✕</button>
+            </div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="Type a message..."></textarea>
+                    <span id="charCounter" class="char-counter-overlay">0</span>
+                </div>
+                <button class="emoji-btn" id="emojiBtn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABCUlEQVRYCe2UwQ7DMAhD16n//8uZcnCVEDCwIXHZLmwJfvYo6jXGeHV+3p3m07s9wP3FBLxndmWYmQCeMXzRFwoSCQAgDKIVOhrE2wFAoqZaH2WwAFSoOZEzk2UFMAXExLtSmVYAD1Z2rwVQkxY5HmwtQJFXDCMDHAljmFTX5iEDpEgVze0B2JtQvsG20QX+fUjfPoF/ALYD2Wcu1yKkl49ALo6EVvzePNgEYLYJcJiodBJyApP7qyHLdrC1AAxQfmcFWJPSETqJVu3KfGRsB6YAANRHmPyimk+GNQHwTSEaApUy2ATABiA7BejAUWskAIQAekHQBx2tmQAApQwgsqq3A5au7Lw9wAdfMB1MUYV0PAAAAABJRU5ErkJggg==" width="24" height="24" alt="Emoji">
+                </button>
+                <button id="sendBtn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAtElEQVRYCe2UwQ6AIAxDxfj/v4zZYYkhw7aDhMu4oILtWyFrvffr5LhPmpt3AVQClcDxBB6iD6BO1QiN6ZYdCSDAqbktMABWIarSIFIgDICB2kAQtkcGUQAcggGxvdRQAVwUHQudRBbgC+LP0QzvxSpAZCp9WwWAFSIaphFFGqwxvLAqwDZjr0o5AtbctamZSUAxhpGPVAzA+E/0Lhu7CAOQFneTv1m5A3866bUCqAQqgeMJvFu0EUneTLqRAAAAAElFTkSuQmCC" width="40" height="40" alt="Send">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="emojiPicker" class="emoji-picker" style="display:none;">
+        <div class="emoji-search-bar">
+            <input type="text" id="emojiSearch" placeholder="Search">
+        </div>
+        <div class="emoji-categories" id="emojiCategories"></div>
+        <div class="emoji-grid" id="emojiGrid"></div>
+        <div class="emoji-preview-footer" id="emojiPreviewFooter">
+            <div class="preview-large-emoji" id="previewLargeEmoji">☝️</div>
+            <div class="preview-text-block">
+                <div class="preview-name" id="previewName">Pick an emoji...</div>
+                <div class="preview-shortcode" id="previewShortcode"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal" style="display:none;">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA/UlEQVRYCe2WwQ7DMAhD22n//8tZmRoJBRMc2ood1lNFHWNeOHRvrW2Vz6uyufR+XwgwotszXj9J4JbJFI2pH0NgNFDe4Wt4lgkQdrkiYJcwnOQIwWhMVkQgtc3GGReMt0egC1NTgd7dz3xCBIzoyUJ5AO8KoqE9pMtXliHgNZfQs29wKE1gOT10xEXk/Q2bIYBbJKv/AOUE9BKiDUbLIzWklS1Aeql7+vQfkddImi095VdQHkDvgEZ3G+LTtPuZXUAEulgHuuvdeHsExoYm+SEYzRjN6LshAkb0ZIEJgCZjM4Vn0RWEh9jup27qxxBY7LcmRwRYh+lkrEk5gQ9f0xhWTd/6OwAAAABJRU5ErkJggg==" width="30" height="30" alt="Settings">
+                </span>
+                <h2>Settings</h2>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label>Font size</label>
+                    <select id="fontSizeSelect">
+                        <option value="13">Small (13px)</option>
+                        <option value="15" selected>Medium (15px)</option>
+                        <option value="17">Large (17px)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Version</label>
+                    <span id="settingsVersion" class="version-text">v0.13</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeSettingsBtn" class="modal-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-version" id="versionNumber">v0.13</div>
+
+    <div id="deleteModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAf0lEQVRYCe2WwQrAIAxD59j//3LFg5BqEYVKdogXraCNLwVbzOxhjpeZvOWmC/gCArc9KZjzlwScQlR7Yx1Z0PNkWxE+jG6BBOwSaP6hh6dxr6tp3hUwHczakAAREAEREAEREIFVT4g/7tgfnsZ4l1vLAjqBVQ1gD+h8ywzoBCqV9glNoY/nKAAAAABJRU5ErkJggg==" width="30" height="30" alt="Delete">
+                </span>
+                <h2>Delete Message?</h2>
+            </div>
+            <div class="modal-body">
+                <p>This message will be permanently deleted. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteCancelBtn" class="modal-cancel">Cancel</button>
+                <button id="deleteConfirmBtn" class="modal-confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pasteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">📋</span>
+                <h2>Paste Text</h2>
+            </div>
+            <div class="modal-body">
+                <textarea id="pasteTextArea" rows="4" placeholder="Long press here and choose &quot;Paste&quot;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="pasteCancelBtn" class="modal-cancel">Cancel</button>
+                <button id="pasteConfirmBtn" class="modal-confirm">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

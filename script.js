@@ -164,6 +164,7 @@ function displayMessages() {
         div.className = 'message';
         div.setAttribute('data-id', msg.id);
         const editedMark = msg.edited ? ' <span class="edited-mark">(edited)</span>' : '';
+        const pinnedMark = msg.pinned ? ' <img src="icons/pin.png" width="12" height="12" alt="Pinned" class="pinned-mark">' : '';
         const escapedText = escapeHtml(msg.text);
         const formattedText = applyFormatting(escapedText);
         const renderedText = renderCustomEmojis(formattedText);
@@ -178,7 +179,7 @@ function displayMessages() {
                 <div class="message-reply-preview">Replying to: ${renderedReply}</div>
                 <div class="message-main-row">
                     <span class="username-label">User:</span>
-                    <span class="msg-text-body">${renderedText}${editedMark}</span>
+                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}</span>
                     <span class="timestamp">${formatMessageDate(msg.fullDate, msg.time)}</span>
                 </div>
             `;
@@ -186,7 +187,7 @@ function displayMessages() {
             innerHtml = `
                 <div class="message-main-row">
                     <span class="username-label">User:</span>
-                    <span class="msg-text-body">${renderedText}${editedMark}</span>
+                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}</span>
                     <span class="timestamp">${formatMessageDate(msg.fullDate, msg.time)}</span>
                 </div>
             `;
@@ -198,6 +199,7 @@ function displayMessages() {
     attachLongPress();
     attachScrollCancel();
     applyFontSize();
+    renderPinnedBar();
 }
 
 function updateCharCounter() {
@@ -950,6 +952,10 @@ let activeMenu = null;
 function showMessageMenu(x, y, messageId, currentText) {
     if (isInteractionBlocked()) return;
     closeMessageMenu();
+
+    const msg = messages.find(m => m.id === messageId);
+    const pinLabel = msg && msg.pinned ? 'Unpin' : 'Pin';
+
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.style.left = `${x}px`;
@@ -967,6 +973,10 @@ function showMessageMenu(x, y, messageId, currentText) {
             <img src="icons/copy.png" width="20" height="20" alt="Copy">
             Copy
         </div>
+        <div class="context-menu-item pin-item" data-id="${messageId}">
+            <img src="icons/pin.png" width="20" height="20" alt="Pin">
+            <span class="pin-label">${pinLabel}</span>
+        </div>
         <div class="context-menu-item delete-item" data-id="${messageId}">
             <img src="icons/delete.png" width="20" height="20" alt="Delete">
             Delete
@@ -974,31 +984,36 @@ function showMessageMenu(x, y, messageId, currentText) {
     `;
     document.body.appendChild(menu);
     activeMenu = menu;
-    
-    menu.querySelector('.reply-item').addEventListener('click', (e) => {
+
+    menu.querySelector('.reply-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.reply-item').getAttribute('data-id'));
         const text = menu.querySelector('.reply-item').getAttribute('data-text');
         closeMessageMenu();
         showReplyIndicator(id, text);
     });
-    menu.querySelector('.edit-item').addEventListener('click', (e) => {
+    menu.querySelector('.edit-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.edit-item').getAttribute('data-id'));
         const originalText = menu.querySelector('.edit-item').getAttribute('data-text');
         closeMessageMenu();
         startInlineEdit(id, originalText);
     });
-    menu.querySelector('.copy-item').addEventListener('click', (e) => {
+    menu.querySelector('.copy-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.copy-item').getAttribute('data-id'));
         const text = messages.find(m => m.id === id)?.text || '';
         if (text) navigator.clipboard.writeText(text);
         closeMessageMenu();
     });
-    menu.querySelector('.delete-item').addEventListener('click', (e) => {
+    menu.querySelector('.pin-item').addEventListener('click', () => {
+        const id = parseInt(menu.querySelector('.pin-item').getAttribute('data-id'));
+        togglePin(id);
+        closeMessageMenu();
+    });
+    menu.querySelector('.delete-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.delete-item').getAttribute('data-id'));
         closeMessageMenu();
         showDeleteConfirmation(id);
     });
-    
+
     setTimeout(() => {
         const closeHandler = (event) => {
             if (activeMenu && !activeMenu.contains(event.target)) {
@@ -1034,6 +1049,68 @@ if (deleteConfirmBtn) deleteConfirmBtn.addEventListener('click', () => {
     }
 });
 window.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModal(); });
+
+// ---------- pinning ----------
+function togglePin(messageId) {
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg) return;
+    msg.pinned = !msg.pinned;
+    saveMessages();
+    displayMessages();
+}
+
+function renderPinnedBar() {
+    const pinned = messages.filter(m => m.pinned);
+    const bar = document.getElementById('pinnedBar');
+    const count = document.getElementById('pinnedCount');
+    const list = document.getElementById('pinnedList');
+    const toggle = document.getElementById('pinnedToggle');
+    const header = document.getElementById('pinnedHeader');
+    if (!bar || !count || !list) return;
+
+    if (pinned.length === 0) {
+        bar.classList.remove('visible');
+        return;
+    }
+
+    bar.classList.add('visible');
+    count.textContent = pinned.length;
+
+    // Restore collapsed state from localStorage
+    const collapsed = localStorage.getItem('roomgather_pinned_collapsed') === 'true';
+    bar.classList.toggle('collapsed', collapsed);
+
+    list.innerHTML = pinned.map(m => {
+        const escaped = escapeHtml(m.text);
+        const formatted = applyFormatting(escaped);
+        const rendered = renderCustomEmojis(formatted);
+        return `<div class="pinned-item" data-id="${m.id}"><img src="icons/pin.png" width="14" height="14" alt="Pinned" class="pin-icon"><span class="pinned-text">${rendered}</span></div>`;
+    }).join('');
+
+    // Click a pinned item → scroll to original message
+    list.querySelectorAll('.pinned-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.getAttribute('data-id');
+            const target = document.querySelector(`.message[data-id='${id}']`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.style.transition = 'background 0.3s';
+                const oldBg = target.style.background;
+                target.style.background = '#2a2a2a';
+                setTimeout(() => { target.style.background = oldBg; }, 800);
+            }
+        });
+    });
+
+    // Toggle collapse on header click (only wire once)
+    if (header && !header.dataset.wired) {
+        header.dataset.wired = 'true';
+        header.addEventListener('click', () => {
+            const nowCollapsed = bar.classList.toggle('collapsed');
+            localStorage.setItem('roomgather_pinned_collapsed', nowCollapsed ? 'true' : 'false');
+        });
+    }
+}
 
 // ---------- inline edit ----------
 function startInlineEdit(messageId, originalText) {
@@ -1259,4 +1336,5 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharCounter();
     applyFontSize();
     displayMessages();
+    renderPinnedBar();
 });

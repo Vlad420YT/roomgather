@@ -1,4 +1,8 @@
-const CORRECT_PASSWORD = "Roomgather"; 
+// Block default browser popups (context menu, text selection)
+document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
+document.addEventListener('selectstart', (e) => { e.preventDefault(); return false; });
+
+const CORRECT_PASSWORD = "Pagedit"; 
 
 const passwordModal = document.getElementById('passwordModal');
 const adminContent = document.getElementById('adminContent');
@@ -13,6 +17,7 @@ const wrongPasswordOkBtn = document.getElementById('wrongPasswordOkBtn');
 function showAdminPanel() {
     passwordModal.style.display = 'none';
     adminContent.style.display = 'block';
+    if (passwordInput) passwordInput.value = '';
 }
 
 function showWrongPasswordModal() {
@@ -22,6 +27,7 @@ function showWrongPasswordModal() {
 function closeWrongPasswordModal() {
     wrongPasswordModal.style.display = 'none';
     if (passwordInput) passwordInput.value = '';
+    if (passwordInput) passwordInput.focus();
 }
 
 if (wrongPasswordOkBtn) {
@@ -47,6 +53,7 @@ if (submitBtn) {
 
 if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
+        if (wrongPasswordModal) wrongPasswordModal.style.display = 'none';
         window.location.href = 'index.html';
     });
 }
@@ -93,7 +100,7 @@ function exportChat() {
     }, 100);
 }
 
-// ------------------- CLEAR ALL MODAL (no browser alert) -------------------
+// ------------------- CLEAR ALL MODAL -------------------
 const clearAllModal = document.getElementById('clearAllModal');
 const clearAllCancelBtn = document.getElementById('clearAllCancelBtn');
 const clearAllConfirmBtn = document.getElementById('clearAllConfirmBtn');
@@ -109,7 +116,6 @@ if (clearAllConfirmBtn) {
     clearAllConfirmBtn.addEventListener('click', () => {
         localStorage.removeItem('roomgather_messages');
         closeClearAllModal();
-        // Removed alert('All messages cleared.');
     });
 }
 
@@ -120,7 +126,11 @@ window.addEventListener('click', (e) => {
 // ------------------- BACK BUTTON -------------------
 const backBtn = document.getElementById('backToChatBtn');
 if (backBtn) {
-    backBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
+    backBtn.addEventListener('click', () => {
+        if (wrongPasswordModal) wrongPasswordModal.style.display = 'none';
+        if (passwordModal) passwordModal.style.display = 'flex';
+        window.location.href = 'index.html';
+    });
 }
 
 // ------------------- ATTACH EXPORT HANDLER -------------------

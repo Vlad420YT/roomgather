@@ -1151,7 +1151,7 @@ function createSelectionMenu() {
         </div>
         <span class="selection-menu-sep">|</span>
         <div class="selection-menu-item select-all-btn">
-            <img src="icons/multiselect.png" width="16" height="16" alt="Select All"> Select All
+            <img src="icons/select_all.png" width="16" height="16" alt="Select All"> Select All
         </div>
     `;
     document.body.appendChild(menu);

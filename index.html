@@ -30,6 +30,18 @@
             <button id="clearSearchBtn" class="clear-search">✕</button>
         </div>
 
+        <!-- Pinned bar (above messages) -->
+        <div class="pinned-bar" id="pinnedBar">
+            <div class="pinned-header" id="pinnedHeader">
+<span>
+    <img src="icons/pin.png" width="14" height="14" alt="Pinned" class="pin-icon">
+    <span id="pinnedCount">0</span> pinned
+</span>
+                <span class="pinned-toggle" id="pinnedToggle">▾</span>
+            </div>
+            <div id="pinnedList"></div>
+        </div>
+
         <div class="messages" id="messages"></div>
 
         <div class="bottom-bar">
@@ -46,7 +58,7 @@
                     <img src="icons/emoji.png" width="24" height="24" alt="Emoji">
                 </button>
                 <button id="sendBtn">
-                    <img src="icons/send.png" width="40" height="40" alt="Send">
+                    <img src="icons/send.png" width="24" height="24" alt="Send">
                 </button>
             </div>
         </div>

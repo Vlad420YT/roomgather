@@ -104,6 +104,17 @@ body {
     padding: 12px 8px 12px 16px;
     background: #1a1a1a;
     min-height: 56px;
+    pointer-events: auto;
+}
+
+/* search header */
+.search-header {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px 12px 16px;
+    background: #1a1a1a;
+    min-height: 56px;
 }
 
 #searchInput {
@@ -150,14 +161,26 @@ body {
     font-weight: normal;
     line-height: 1.4;
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    gap: 6px;
+    flex-direction: column;
     border-left: 4px solid #1E88E5;
     border-radius: 0px;
     margin: 0;
     min-width: 0;
+    gap: 2px;
+}
+
+.message-main-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+}
+
+.message-reply-preview {
+    font-size: 12px;
+    color: #888888;
+    word-break: break-word;
+    margin-bottom: 2px;
 }
 
 /* Message text container (used by JS) */
@@ -326,6 +349,30 @@ body {
 }
 #sendBtn:hover { background: #0b5ea3; }
 
+.settings-export-btn {
+    background: #2a2a2a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 0px;
+    font-size: 14px;
+    width: 100%;
+}
+.settings-export-btn:hover {
+    background: #333333;
+}
+
+.export-item {
+    justify-content: center;
+}
+.export-item label {
+    display: none;
+}
+.version-item {
+    justify-content: space-between;
+}
+
 /* scrollbar */
 .messages::-webkit-scrollbar { width: 6px; }
 .messages::-webkit-scrollbar-track { background: #0a0a0a; }
@@ -343,8 +390,29 @@ body {
     z-index: 999;
     cursor: default;
 }
+/* Force emoji picker search input to be fully interactive */
+#emojiSearch,
+#emojiSearch:focus,
+#emojiSearch:active {
+    pointer-events: auto;
+    user-select: text;
+    -webkit-user-select: text;
+    touch-action: manipulation;
+    opacity: 1;
+    visibility: visible;
+    display: block;
+    background: #1a1a1a;
+    color: #ffffff ;
+    border: 1px solid #333 ;
+    padding: 8px 12px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 10001;
+    position: relative;
+}
 
-/* emoji picker (unchanged) */
+/* emoji picker */
 .emoji-picker {
     position: fixed;
     bottom: 80px;
@@ -394,11 +462,13 @@ body {
     cursor: pointer;
     padding: 4px 6px;
     border-radius: 0px;
-    opacity: 0.5;
+    filter: brightness(0.6);   /* greyed out by default */
     flex-shrink: 0;
 }
-.emoji-cat-btn.active { opacity: 1; background: #1a1a1a; }
-.emoji-cat-btn:hover { opacity: 1; }
+.emoji-cat-btn.active {
+    filter: brightness(1);     /* fully bright */
+    background: #1a1a1a;       /* optional background */
+}
 
 .emoji-grid {
     display: flex;
@@ -433,8 +503,33 @@ body {
     cursor: pointer;
     border-radius: 0px;
     line-height: 1.3;
+    
+    /* ADD THESE LINES */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    touch-action: manipulation;
 }
+
+/* ADD THIS NEW RULE */
+.emoji-item img {
+    pointer-events: none; /* Prevents the browser from thinking you want to drag the image file */
+}
+
+/* Desktop hover */
 .emoji-item:hover { background: #1a1a1a; }
+.emoji-item:focus { background: #1a1a1a; }
+
+/* Touch devices — disable sticky hover, use active instead */
+@media (hover: none) {
+    .emoji-item:hover {
+        background: transparent;
+    }
+    .emoji-item:active {
+        background: #1a1a1a;
+    }
+}
 
 .emoji-empty-placeholder {
     color: #555555;
@@ -541,7 +636,7 @@ body {
     font-size: 14px;
 }
 
-/* toggle switch (if still present) */
+/* toggle switch */
 .toggle-switch {
     position: relative;
     display: inline-block;
@@ -633,7 +728,7 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
 }
 .context-menu-item:hover { background: #1a1a1a; }
 
-/* Typing bar selection menu (v0.12) */
+/* Typing bar selection menu */
 .selection-menu {
     position: fixed;
     background: #0a0a0a;
@@ -668,7 +763,7 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
     height: 14px;
 }
 
-/* inline edit – ensures horizontal layout without wrapping */
+/* inline edit */
 .msg-text-body:has(.inline-edit-input) {
     display: inline-flex;
     align-items: center;
@@ -777,11 +872,20 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
 /* username label */
 .username-label {
     color: #ffffff;
-    width: 35px;
+    width: auto;
+    min-width: 40px;
     flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.inline-emoji {
+    width: 26px;
+    height: 26px;
+    vertical-align: middle;
+    display: inline-block;
+    margin-top: -0.25em;
 }
 
 *:focus { outline: none; }

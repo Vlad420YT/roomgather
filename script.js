@@ -334,6 +334,7 @@ const customEmojis = [
     { id: 'rg_sinewave', shortcode: 'sinewave', name: 'Wavy Dash', category: '❤️' },
     { id: 'rg_hash', shortcode: 'hash', name: 'Keycap Number Sign', category: '❤️' },
     { id: 'rg_asterisk', shortcode: 'asterisk', name: 'Keycap Asterisk', category: '❤️' },
+    { id: 'rg_zero', shortcode: 'zero', name: 'Keycap Digit Zero', category: '❤️' },
     { id: 'rg_one', shortcode: 'one', name: 'Keycap Digit One', category: '❤️' },
     { id: 'rg_two', shortcode: 'two', name: 'Keycap Digit Two', category: '❤️' },
     { id: 'rg_three', shortcode: 'three', name: 'Keycap Digit Three', category: '❤️' },
@@ -479,6 +480,7 @@ renderCustomEmojis = function(text) {
         '〰️': 'sinewave',
         '#️⃣': 'hash',
         '*️⃣': 'asterisk',
+        '0️⃣': 'zero',
         '1️⃣': 'one',
         '2️⃣': 'two',
         '3️⃣': 'three',
@@ -551,7 +553,9 @@ function detachLongPress() {
 
 // ---------- simplified long press (movement does NOT cancel) ----------
 let pressTimer = null;
+let startX = 0, startY = 0;
 const LONG_PRESS_MS = 600;
+const MOVE_THRESHOLD = 25;
 
 function cancelLongPress() {
     if (pressTimer) {
@@ -562,15 +566,31 @@ function cancelLongPress() {
 
 function onPointerDown(e) {
     if (!longPressEnabled) return;
-    if (e.button !== undefined && e.button !== 0 && e.button !== -1) return;
     if (isInteractionBlocked()) return;
+
     const target = e.currentTarget;
     if (!target) return;
-    
+
+    // 1. Handle Right-Click (Instant Popup)
+    if (e.button === 2) {
+        e.preventDefault();
+        const messageId = parseInt(target.getAttribute('data-id'));
+        const currentText = messages.find(m => m.id === messageId)?.text || '';
+        showMessageMenu(e.clientX, e.clientY, messageId, currentText);
+        return; // Stop here so we don't start the long-press timer
+    }
+
+    // 2. Handle Left-Click / Touch (Long-Press Timer)
+    if (e.button !== undefined && e.button !== 0 && e.button !== -1) return;
+    if (e.pointerType === 'touch' && e.isPrimary === false) return;
+
+    startX = e.clientX;
+    startY = e.clientY;
+
     target.style.transition = 'background 0.1s';
     target.style.background = '#2a2a2a';
     setTimeout(() => { target.style.background = ''; }, 150);
-    
+
     cancelLongPress();
     pressTimer = setTimeout(() => {
         if (navigator.vibrate) navigator.vibrate(50);
@@ -582,11 +602,19 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
-    // Do nothing
+    if (!pressTimer) return;
+    if (Math.abs(e.clientX - startX) > MOVE_THRESHOLD ||
+        Math.abs(e.clientY - startY) > MOVE_THRESHOLD) {
+        cancelLongPress();
+    }
 }
 
-function onPointerUp() { 
-    cancelLongPress(); 
+function onPointerUp() {
+    cancelLongPress();
+}
+
+function onPointerCancel() {
+    cancelLongPress();
 }
 
 function attachLongPress() {
@@ -595,11 +623,24 @@ function attachLongPress() {
         div.removeEventListener('pointerdown', onPointerDown);
         div.removeEventListener('pointermove', onPointerMove);
         div.removeEventListener('pointerup', onPointerUp);
+        div.removeEventListener('pointercancel', onPointerCancel);
+        
         div.addEventListener('pointerdown', onPointerDown);
         div.addEventListener('pointermove', onPointerMove);
         div.addEventListener('pointerup', onPointerUp);
+        div.addEventListener('pointercancel', onPointerCancel);
     });
     longPressListenersAttached = true;
+}
+
+function detachLongPress() {
+    document.querySelectorAll('.message').forEach(div => {
+        div.removeEventListener('pointerdown', onPointerDown);
+        div.removeEventListener('pointermove', onPointerMove);
+        div.removeEventListener('pointerup', onPointerUp);
+        div.removeEventListener('pointercancel', onPointerCancel);
+    });
+    longPressListenersAttached = false;
 }
 
 function setupEmojiPicker() {

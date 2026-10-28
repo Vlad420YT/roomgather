@@ -138,19 +138,29 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 14px;
+    padding: 8px 12px 8px 14px;
     font-size: 12px;
     color: #888888;
     user-select: none;
     cursor: pointer;
     flex-shrink: 0;
+    gap: 8px;
 }
 .pinned-header:hover { background: #121212; }
 
 .pinned-toggle {
-    font-size: 12px;
-    transition: transform 0.15s ease;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    color: #cccccc;
+    background: #1a1a1a;
+    transition: transform 0.2s ease, background 0.15s ease;
+}
+.pinned-header:hover .pinned-toggle {
+    background: #2a2a2a;
 }
 .pinned-bar.collapsed .pinned-toggle {
     transform: rotate(-90deg);
@@ -291,11 +301,12 @@ body {
 }
 
 .inline-emoji {
-    width: 26px;
-    height: 26px;
+    width: 1.4em;
+    height: 1.4em;
     vertical-align: middle;
     display: inline-block;
-    margin-top: -0.25em;
+    margin-top: 0;
+    image-rendering: pixelated;
 }
 
 /* ---------- Bottom bar ---------- */

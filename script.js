@@ -58,23 +58,79 @@ function escapeHtml(text) {
 }
 
 function applyFormatting(text) {
-    // 1. Protect underscores inside emoji shortcodes (:slight_smile: → :slight\uE000smile:)
-    const protectedText = text.replace(/:([a-zA-Z0-9_]+):/g, (match) =>
+    let result = text.replace(/:([a-zA-Z0-9_]+):/g, (match) =>
         match.replace(/_/g, '\uE000')
     );
-    
-    let result = protectedText;
-    // 2. Bold first (so ** isn't eaten by italic *)
+
+    const codeBlocks = [];
+    result = result.replace(/`([\s\S]*?)`/g, (match, codeContent) => {
+        const id = `%%%CODEBLOCK${codeBlocks.length}%%%`;
+        const escapedCode = codeContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        codeBlocks.push(`<code class="inline-code">${escapedCode}</code>`);
+        return id;
+    });
+
+    let lines = result.split('\n');
+let resultHtml = '';
+let inList = false;
+let listType = '';
+let inBlockquote = false;
+let bqLines = [];
+
+for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    let ulMatch = line.match(/^\s*[-*]\s+(.*)/);
+    let olMatch = line.match(/^\s*\d+\.\s+(.*)/) || line.match(/^\s*\d+\.(.*)/); // Fixed: space is now optional
+    let bqMatch = line.match(/^&gt; ?(.*)/);
+
+    if (bqMatch) {
+        if (inList) { resultHtml += `</${listType}>`; inList = false; }
+        inBlockquote = true;
+        bqLines.push(bqMatch[1]);
+        continue;
+    }
+
+    if (inBlockquote) {
+        while (bqLines.length > 0 && bqLines[bqLines.length - 1].trim() === '') bqLines.pop();
+        if (bqLines.length > 0) resultHtml += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
+        inBlockquote = false;
+        bqLines = [];
+    }
+
+    if (ulMatch) {
+        if (inList && listType !== 'ul') { resultHtml += `</${listType}>`; inList = false; }
+        if (!inList) { resultHtml += '<ul>'; listType = 'ul'; inList = true; }
+        resultHtml += `<li>${ulMatch[1]}</li>`;
+    } else if (olMatch) {
+        if (inList && listType !== 'ol') { resultHtml += `</${listType}>`; inList = false; }
+        if (!inList) { resultHtml += '<ol>'; listType = 'ol'; inList = true; }
+        resultHtml += `<li>${olMatch[1]}</li>`;
+    } else {
+        if (inList) { resultHtml += `</${listType}>`; inList = false; }
+        resultHtml += line + '<br>'; // Use <br> instead of \n
+    }
+}
+
+if (inList) resultHtml += `</${listType}>`;
+if (inBlockquote) {
+    while (bqLines.length > 0 && bqLines[bqLines.length - 1].trim() === '') bqLines.pop();
+    if (bqLines.length > 0) resultHtml += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
+}
+
+result = resultHtml;
+
+// Remove the trailing <br> so the message doesn't have a weird gap at the bottom
+if (result.endsWith('<br>')) result = result.slice(0, -4);
     result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // 3. Underline
     result = result.replace(/_(.*?)_/g, '<u>$1</u>');
-    // 4. Strikethrough
     result = result.replace(/~(.*?)~/g, '<del>$1</del>');
-    // 5. Italic last
     result = result.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // 6. Restore underscores
+
     result = result.replace(/\uE000/g, '_');
+    result = result.replace(/%%%CODEBLOCK(\d+)%%%/g, (match, index) => {
+        return codeBlocks[parseInt(index)];
+    });
+
     return result;
 }
 
@@ -163,23 +219,28 @@ function displayMessages() {
         const div = document.createElement('div');
         div.className = 'message';
         div.setAttribute('data-id', msg.id);
+        
         const editedMark = msg.edited ? ' <span class="edited-mark">(edited)</span>' : '';
         const pinnedMark = msg.pinned ? ' <img src="icons/pin.png" width="12" height="12" alt="Pinned" class="pinned-mark">' : '';
+        const bookmarkMark = msg.bookmarked ? ' <img src="icons/bookmark.png" width="12" height="12" alt="Bookmarked" class="pinned-mark">' : '';
+        
         const escapedText = escapeHtml(msg.text);
         const formattedText = applyFormatting(escapedText);
         const renderedText = renderCustomEmojis(formattedText);
+        
         let innerHtml = '';
         if (msg.replyTo) {
             const originalMsg = messages.find(m => m.id === msg.replyTo.id);
-            const replyText = originalMsg ? originalMsg.text : msg.replyTo.text;
+            const replyText = originalMsg ? originalMsg.text : '[deleted message]';
             const escapedReply = escapeHtml(replyText);
             const formattedReply = applyFormatting(escapedReply);
             const renderedReply = renderCustomEmojis(formattedReply);
+            
             innerHtml = `
                 <div class="message-reply-preview">Replying to: ${renderedReply}</div>
                 <div class="message-main-row">
                     <span class="username-label">User:</span>
-                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}</span>
+                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}${bookmarkMark}</span>
                     <span class="timestamp">${formatMessageDate(msg.fullDate, msg.time)}</span>
                 </div>
             `;
@@ -187,7 +248,7 @@ function displayMessages() {
             innerHtml = `
                 <div class="message-main-row">
                     <span class="username-label">User:</span>
-                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}</span>
+                    <span class="msg-text-body">${renderedText}${editedMark}${pinnedMark}${bookmarkMark}</span>
                     <span class="timestamp">${formatMessageDate(msg.fullDate, msg.time)}</span>
                 </div>
             `;
@@ -264,6 +325,7 @@ const customEmojis = [
     { id: 'rg_snowman_winter', shortcode: 'snowman_winter', name: 'Snowman', category: '🐶' },
     { id: 'rg_snowman', shortcode: 'snowman', name: 'Snowman Without Snow', category: '🐶' },
     { id: 'rg_comet', shortcode: 'comet', name: 'Comet', category: '🐶' },
+    { id: 'rg_pumpkin', shortcode: 'pumpkin', name: 'Jack-O-Lantern', category: '⚽' },
     { id: 'rg_spade', shortcode: 'spade_card', name: 'Spade Suit', category: '⚽' },
     { id: 'rg_heart_suit', shortcode: 'heart_card', name: 'Heart Suit', category: '⚽' },
     { id: 'rg_diamond', shortcode: 'diamond_card', name: 'Diamond Suit', category: '⚽' },
@@ -304,6 +366,8 @@ const customEmojis = [
     { id: 'rg_leftright', shortcode: 'leftright', name: 'Left-Right Arrow', category: '❤️' },
     { id: 'rg_undo', shortcode: 'undo', name: 'Right Arrow Curving Left', category: '❤️' },
     { id: 'rg_redo', shortcode: 'redo', name: 'Left Arrow Curving Right', category: '❤️' },
+    { id: 'rg_upturn', shortcode: 'upturn', name: 'Right Arrow Curving Up', category: '❤️' },
+    { id: 'rg_downturn', shortcode: 'downturn', name: 'Right Arrow Curving Down', category: '❤️' },
     { id: 'rg_play', shortcode: 'play', name: 'Play Button', category: '❤️' },
     { id: 'rg_rewind', shortcode: 'rewind', name: 'Reverse Button', category: '❤️' },
     { id: 'rg_star_david', shortcode: 'star_david', name: 'Star of David', category: '❤️' },
@@ -348,9 +412,11 @@ const customEmojis = [
     { id: 'rg_circled_m', shortcode: 'm_button', name: 'Circled M', category: '❤️' },
     { id: 'rg_congratulations', shortcode: 'congratulations', name: 'Japanese “Congratulations” Button', category: '❤️' },
     { id: 'rg_secret', shortcode: 'secret', name: 'Japanese “Secret” Button', category: '❤️' },
+    { id: 'rg_recycle', shortcode: 'recycle', name: 'Recycling Symbol', category: '❤️' },
     { id: 'rg_check', shortcode: 'check', name: 'Check Mark Button', category: '❤️' },
     { id: 'rg_checkbox', shortcode: 'checkbox', name: 'Check Box with Check', category: '❤️' },
     { id: 'rg_checkmark', shortcode: 'checkmark', name: 'Check Mark', category: '❤️' },
+    { id: 'rg_zigzag', shortcode: 'zigzag', name: 'Part Alternation Mark', category: '❤️' },
     { id: 'rg_required', shortcode: 'required', name: 'Eight-Spoked Asterisk', category: '❤️' },
     { id: 'rg_focus', shortcode: 'focus', name: 'Eight-Pointed Star', category: '❤️' },
     { id: 'rg_active', shortcode: 'active', name: 'Sparkle', category: '❤️' },
@@ -410,6 +476,7 @@ renderCustomEmojis = function(text) {
         '☃️': 'snowman_winter',
         '⛄️': 'snowman',
         '☄️': 'comet',
+        '🎃': 'pumpkin',
         '♠️': 'spade_card',
         '♥️': 'heart_card',
         '♦️': 'diamond_card',
@@ -450,6 +517,8 @@ renderCustomEmojis = function(text) {
         '↔️': 'leftright',
         '↩️': 'undo',
         '↪️': 'redo',
+        '⤴️': 'upturn',
+        '⤵️': 'downturn',
         '▶️': 'play',
         '◀️': 'rewind',
         '✡️': 'star_david',
@@ -494,9 +563,11 @@ renderCustomEmojis = function(text) {
         'Ⓜ️': 'm_button',
         '㊗️': 'congratulations',
         '㊙️': 'secret',
+        '♻️': 'recycle',
         '✅': 'check',
         '☑️': 'checkbox',
         '✔️': 'checkmark',
+        '〽️': 'zigzag',
         '✳️': 'required',
         '✴️': 'focus',
         '❇️': 'active',
@@ -939,21 +1010,24 @@ function setupSettings() {
     const fontSizeSelect = document.getElementById('fontSizeSelect');
     const settingsVersionSpan = document.getElementById('settingsVersion');
     const versionFooter = document.getElementById('versionNumber');
+    const themeToggle = document.getElementById('themeToggle');
 
     if (!settingsBtn || !settingsModal) return;
 
     function updateUI() {
-        fontSizeSelect.value = settings.fontSize;
+        if (fontSizeSelect) fontSizeSelect.value = settings.fontSize;
         if (settingsVersionSpan && versionFooter) {
             settingsVersionSpan.textContent = versionFooter.textContent;
         }
     }
 
-    fontSizeSelect.addEventListener('change', (e) => {
-        settings.fontSize = parseInt(e.target.value);
-        saveSettings();
-        applyFontSize();
-    });
+    if (fontSizeSelect) {
+        fontSizeSelect.addEventListener('change', (e) => {
+            settings.fontSize = parseInt(e.target.value);
+            saveSettings();
+            applyFontSize();
+        });
+    }
 
     settingsBtn.addEventListener('click', () => {
         updateUI();
@@ -969,14 +1043,33 @@ function setupSettings() {
     window.addEventListener('click', (e) => {
         if (e.target === settingsModal) settingsModal.style.display = 'none';
     });
-}
+
+    // --- Halloween Theme Toggle Logic ---
+    const currentTheme = localStorage.getItem('roomgather_theme');
+    if (currentTheme === 'halloween') {
+        document.body.setAttribute('data-theme', 'halloween');
+        if (themeToggle) themeToggle.checked = true;
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.setAttribute('data-theme', 'halloween');
+                localStorage.setItem('roomgather_theme', 'halloween');
+            } else {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('roomgather_theme', 'midnight');
+            }
+        });
+    }
+} 
+// End of setupSettings (The crucial missing brace is right above this line)
 
 function isInteractionBlocked() {
     return !!(document.querySelector('.inline-edit-input') ||
         (document.getElementById('replyIndicator') && document.getElementById('replyIndicator').style.display === 'flex') ||
         (document.getElementById('deleteModal') && document.getElementById('deleteModal').style.display === 'flex') ||
         (document.getElementById('settingsModal') && document.getElementById('settingsModal').style.display === 'flex') ||
-        (document.getElementById('pasteModal') && document.getElementById('pasteModal').style.display === 'flex') ||
         (document.getElementById('emojiPicker') && document.getElementById('emojiPicker').style.display === 'flex'));
 }
 
@@ -996,11 +1089,10 @@ function showMessageMenu(x, y, messageId, currentText) {
 
     const msg = messages.find(m => m.id === messageId);
     const pinLabel = msg && msg.pinned ? 'Unpin' : 'Pin';
+    const bookmarkLabel = msg && msg.bookmarked ? 'Unbookmark' : 'Bookmark';
 
     const menu = document.createElement('div');
     menu.className = 'context-menu';
-    menu.style.left = `${x}px`;
-    menu.style.top = `${y}px`;
     menu.innerHTML = `
         <div class="context-menu-item reply-item" data-id="${messageId}" data-text="${escapeHtml(currentText)}">
             <img src="icons/reply.png" width="20" height="20" alt="Reply">
@@ -1014,17 +1106,40 @@ function showMessageMenu(x, y, messageId, currentText) {
             <img src="icons/copy.png" width="20" height="20" alt="Copy">
             Copy
         </div>
+        <div class="context-menu-item bookmark-item" data-id="${messageId}">
+            <img src="icons/bookmark.png" width="20" height="20" alt="Bookmark">
+            <span class="bookmark-label">${bookmarkLabel}</span>
+        </div>
         <div class="context-menu-item pin-item" data-id="${messageId}">
             <img src="icons/pin.png" width="20" height="20" alt="Pin">
             <span class="pin-label">${pinLabel}</span>
         </div>
         <div class="context-menu-item delete-item" data-id="${messageId}">
-            <img src="icons/delete.png" width="20" height="20" alt="Delete">
+            <img src="icons/reddelete.png" width="20" height="20" alt="Delete">
             Delete
         </div>
     `;
+    
     document.body.appendChild(menu);
     activeMenu = menu;
+
+    const menuRect = menu.getBoundingClientRect();
+    const menuWidth = menuRect.width;
+    const menuHeight = menuRect.height;
+
+    let finalX = x;
+    let finalY = y;
+
+    if (y + menuHeight > window.innerHeight) {
+        finalY = y - menuHeight;
+    }
+
+    if (x + menuWidth > window.innerWidth) {
+        finalX = x - menuWidth;
+    }
+
+    menu.style.left = `${Math.max(10, finalX)}px`;
+    menu.style.top = `${Math.max(10, finalY)}px`;
 
     menu.querySelector('.reply-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.reply-item').getAttribute('data-id'));
@@ -1032,23 +1147,33 @@ function showMessageMenu(x, y, messageId, currentText) {
         closeMessageMenu();
         showReplyIndicator(id, text);
     });
+    
     menu.querySelector('.edit-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.edit-item').getAttribute('data-id'));
         const originalText = menu.querySelector('.edit-item').getAttribute('data-text');
         closeMessageMenu();
         startInlineEdit(id, originalText);
     });
+    
     menu.querySelector('.copy-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.copy-item').getAttribute('data-id'));
         const text = messages.find(m => m.id === id)?.text || '';
         if (text) navigator.clipboard.writeText(text);
         closeMessageMenu();
     });
+    
+    menu.querySelector('.bookmark-item').addEventListener('click', () => {
+        const id = parseInt(menu.querySelector('.bookmark-item').getAttribute('data-id'));
+        toggleBookmark(id);
+        closeMessageMenu();
+    });
+
     menu.querySelector('.pin-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.pin-item').getAttribute('data-id'));
         togglePin(id);
         closeMessageMenu();
     });
+    
     menu.querySelector('.delete-item').addEventListener('click', () => {
         const id = parseInt(menu.querySelector('.delete-item').getAttribute('data-id'));
         closeMessageMenu();
@@ -1153,6 +1278,58 @@ function renderPinnedBar() {
     }
 }
 
+// ---------- Bookmarking ----------
+function toggleBookmark(messageId) {
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg) return;
+    msg.bookmarked = !msg.bookmarked;
+    saveMessages();
+    displayMessages();
+}
+
+function setupBookmarks() {
+    const bookmarksBtn = document.getElementById('bookmarksIconBtn');
+    const bookmarksModal = document.getElementById('bookmarksModal');
+    const closeBookmarksBtn = document.getElementById('closeBookmarksBtn');
+    const bookmarksList = document.getElementById('bookmarksList');
+
+    if (bookmarksBtn) {
+        bookmarksBtn.addEventListener('click', () => {
+            const bookmarked = messages.filter(m => m.bookmarked);
+            
+            if (bookmarked.length === 0) {
+                bookmarksList.innerHTML = '<p style="color:#888; text-align:center;">No bookmarks yet.</p>';
+            } else {
+                bookmarksList.innerHTML = bookmarked.map(m => {
+                    const escaped = escapeHtml(m.text);
+                    const formatted = applyFormatting(escaped);
+                    const rendered = renderCustomEmojis(formatted);
+                    return `<div class="bookmark-item" data-id="${m.id}"><img src="icons/bookmark.png" width="14" height="14" style="vertical-align: middle; margin-right: 6px;"> ${rendered}</div>`;
+                }).join('');
+                
+                // Scroll to message on click
+                bookmarksList.querySelectorAll('.bookmark-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        bookmarksModal.style.display = 'none';
+                        const id = item.getAttribute('data-id');
+                        const target = document.querySelector(`.message[data-id='${id}']`);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            target.style.background = '#2a2a2a';
+                            setTimeout(() => { target.style.background = ''; }, 800);
+                        }
+                    });
+                });
+            }
+            
+            bookmarksModal.style.display = 'flex';
+        });
+    }
+
+    if (closeBookmarksBtn) closeBookmarksBtn.addEventListener('click', () => bookmarksModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === bookmarksModal) bookmarksModal.style.display = 'none'; });
+}
+
 // ---------- inline edit ----------
 function startInlineEdit(messageId, originalText) {
     const messageDiv = document.querySelector(`.message[data-id='${messageId}']`);
@@ -1211,7 +1388,9 @@ function addMessage(text) {
     saveMessages();
     displayMessages();
     const input = document.getElementById('messageInput');
-    if (input) { input.value = ''; updateCharCounter(); input.focus(); }
+    if (input) { input.value = '';
+    localStorage.removeItem('roomgather_draft');
+    updateCharCounter(); input.focus(); }
 }
 
 // ---------- admin access ----------
@@ -1238,15 +1417,31 @@ if (versionFooter) {
 // ---------- send button ----------
 const sendBtn = document.getElementById('sendBtn');
 const messageInputElem = document.getElementById('messageInput');
+
+// 1. Restore draft on load
+if (messageInputElem) {
+    const savedDraft = localStorage.getItem('roomgather_draft');
+    if (savedDraft) {
+        messageInputElem.value = savedDraft;
+        updateCharCounter();
+    }
+}
+
+// 2. Save draft on input (and update counter)
+if (messageInputElem) {
+    messageInputElem.addEventListener('input', (e) => {
+        localStorage.setItem('roomgather_draft', e.target.value);
+        updateCharCounter();
+    });
+}
+
 function handleSend() {
     if (messageInputElem && messageInputElem.value.trim() !== '') {
         addMessage(messageInputElem.value);
     }
 }
+
 if (sendBtn) sendBtn.addEventListener('click', handleSend);
-if (messageInputElem) {
-    messageInputElem.addEventListener('input', updateCharCounter);
-}
 
 // ---------- selection menu ----------
 let selectionMenu = null;
@@ -1378,4 +1573,5 @@ document.addEventListener('DOMContentLoaded', function() {
     applyFontSize();
     displayMessages();
     renderPinnedBar();
+    setupBookmarks();
 });

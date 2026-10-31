@@ -1012,7 +1012,7 @@ body[data-theme="halloween"] #messageInput {
     background: #0f0812;
 }
 body[data-theme="halloween"] #messageInput:focus {
-    background: #150d1a;
+    background: #0f0812;
 }
 body[data-theme="halloween"] .search-icon-btn, 
 body[data-theme="halloween"] .settings-icon-btn {

@@ -14,6 +14,10 @@
                 <p class="tagline">Rooms for text, voice & more</p>
             </div>
             <div class="header-actions">
+                <!-- Bookmarks button -->
+                <button class="search-icon-btn" id="bookmarksIconBtn">
+                    <img src="icons/bookmark.png" width="24" height="24" alt="Bookmarks">
+                </button>
                 <!-- Search button -->
                 <button class="search-icon-btn" id="searchIconBtn">
                     <img src="icons/search.png" width="24" height="24" alt="Search">
@@ -30,17 +34,17 @@
             <button id="clearSearchBtn" class="clear-search">✕</button>
         </div>
 
-        <!-- Pinned bar (above messages) -->
-        <div class="pinned-bar" id="pinnedBar">
-            <div class="pinned-header" id="pinnedHeader">
-<span>
-    <img src="icons/pin.png" width="14" height="14" alt="Pinned" class="pin-icon">
-    <span id="pinnedCount">0</span> pinned
-</span>
-                <span class="pinned-toggle" id="pinnedToggle">▾</span>
-            </div>
-            <div id="pinnedList"></div>
-        </div>
+<!-- Pinned bar -->
+<div class="pinned-bar" id="pinnedBar">
+    <div class="pinned-header" id="pinnedHeader">
+        <span style="display: flex; align-items: center; gap: 6px;">
+            <img src="icons/pin.png" width="14" height="14" alt="Pinned" style="image-rendering: pixelated;">
+            <span id="pinnedCount">0</span> pinned
+        </span>
+        <span class="pinned-toggle" id="pinnedToggle">▾</span>
+    </div>
+    <div id="pinnedList"></div>
+</div>
 
         <div class="messages" id="messages"></div>
 
@@ -58,12 +62,13 @@
                     <img src="icons/emoji.png" width="24" height="24" alt="Emoji">
                 </button>
                 <button id="sendBtn">
-                    <img src="icons/send.png" width="40" height="40" alt="Send">
+                    <img src="icons/send.png" width="36" height="36" alt="Send">
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Emoji Picker -->
     <div id="emojiPicker" class="emoji-picker" style="display:none;">
         <div class="emoji-search-bar">
             <input type="text" id="emojiSearch" placeholder="Search">
@@ -96,13 +101,21 @@
                         <option value="15" selected>Medium (15px)</option>
                         <option value="17">Large (17px)</option>
                     </select>
+                    
                 </div>
+                                    <div class="setting-item">
+    <label>Halloween Theme</label>
+    <label class="toggle-switch">
+        <input type="checkbox" id="themeToggle">
+        <span class="toggle-slider"></span>
+    </label>
+</div>
                 <div class="setting-item export-item">
                     <button id="settingsExportBtn" class="settings-export-btn">Export Chat (.txt)</button>
                 </div>
                 <div class="setting-item version-item">
                     <label>Version</label>
-                    <span id="settingsVersion" class="version-text">v0.16</span>
+                    <span id="settingsVersion" class="version-text">v0.17</span>
                 </div>
             </div>
             <div class="modal-footer">
@@ -111,13 +124,30 @@
         </div>
     </div>
 
-    <div class="footer-version" id="versionNumber">v0.16</div>
+    <!-- Bookmarks Modal -->
+    <div id="bookmarksModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-icon">
+                    <img src="icons/bookmark.png" width="30" height="30" alt="Bookmark">
+                </span>
+                <h2>Bookmarks</h2>
+            </div>
+            <div class="modal-body" id="bookmarksList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Bookmarks will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button id="closeBookmarksBtn" class="modal-cancel">Close</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Delete Modal -->
     <div id="deleteModal" class="modal" style="display:none;">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="modal-icon">
-                    <img src="icons/delete.png" width="30" height="30" alt="Delete">
+                    <img src="icons/reddelete.png" width="30" height="30" alt="Delete">
                 </span>
                 <h2>Delete Message?</h2>
             </div>
@@ -131,6 +161,8 @@
         </div>
     </div>
 
+    <div class="footer-version" id="versionNumber">v0.17</div>
+
     <script src="script.js"></script>
 </body>
-    </html>
+</html>

@@ -18,7 +18,7 @@ function applyFontSize() {
 }
 
 document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
-// FIX: Allow selection inside inputs and textareas
+// Allow selection inside inputs and textareas
 document.addEventListener('selectstart', (e) => {
     if (e.target.closest('input, textarea')) return;
     e.preventDefault();
@@ -71,56 +71,56 @@ function applyFormatting(text) {
     });
 
     let lines = result.split('\n');
-let resultHtml = '';
-let inList = false;
-let listType = '';
-let inBlockquote = false;
-let bqLines = [];
+    let resultHtml = '';
+    let inList = false;
+    let listType = '';
+    let inBlockquote = false;
+    let bqLines = [];
 
-for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-    let ulMatch = line.match(/^\s*[-*]\s+(.*)/);
-    let olMatch = line.match(/^\s*\d+\.\s+(.*)/) || line.match(/^\s*\d+\.(.*)/); // Fixed: space is now optional
-    let bqMatch = line.match(/^&gt; ?(.*)/);
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        let ulMatch = line.match(/^\s*[-*]\s+(.*)/);
+        let olMatch = line.match(/^\s*\d+\.\s+(.*)/) || line.match(/^\s*\d+\.(.*)/);
+        let bqMatch = line.match(/^&gt; ?(.*)/);
 
-    if (bqMatch) {
-        if (inList) { resultHtml += `</${listType}>`; inList = false; }
-        inBlockquote = true;
-        bqLines.push(bqMatch[1]);
-        continue;
+        if (bqMatch) {
+            if (inList) { resultHtml += `</${listType}>`; inList = false; }
+            inBlockquote = true;
+            bqLines.push(bqMatch[1]);
+            continue;
+        }
+
+        if (inBlockquote) {
+            while (bqLines.length > 0 && bqLines[bqLines.length - 1].trim() === '') bqLines.pop();
+            if (bqLines.length > 0) resultHtml += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
+            inBlockquote = false;
+            bqLines = [];
+        }
+
+        if (ulMatch) {
+            if (inList && listType !== 'ul') { resultHtml += `</${listType}>`; inList = false; }
+            if (!inList) { resultHtml += '<ul>'; listType = 'ul'; inList = true; }
+            resultHtml += `<li>${ulMatch[1]}</li>`;
+        } else if (olMatch) {
+            if (inList && listType !== 'ol') { resultHtml += `</${listType}>`; inList = false; }
+            if (!inList) { resultHtml += '<ol>'; listType = 'ol'; inList = true; }
+            resultHtml += `<li>${olMatch[1]}</li>`;
+        } else {
+            if (inList) { resultHtml += `</${listType}>`; inList = false; }
+            resultHtml += line + '<br>';
+        }
     }
 
+    if (inList) resultHtml += `</${listType}>`;
     if (inBlockquote) {
         while (bqLines.length > 0 && bqLines[bqLines.length - 1].trim() === '') bqLines.pop();
         if (bqLines.length > 0) resultHtml += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
-        inBlockquote = false;
-        bqLines = [];
     }
 
-    if (ulMatch) {
-        if (inList && listType !== 'ul') { resultHtml += `</${listType}>`; inList = false; }
-        if (!inList) { resultHtml += '<ul>'; listType = 'ul'; inList = true; }
-        resultHtml += `<li>${ulMatch[1]}</li>`;
-    } else if (olMatch) {
-        if (inList && listType !== 'ol') { resultHtml += `</${listType}>`; inList = false; }
-        if (!inList) { resultHtml += '<ol>'; listType = 'ol'; inList = true; }
-        resultHtml += `<li>${olMatch[1]}</li>`;
-    } else {
-        if (inList) { resultHtml += `</${listType}>`; inList = false; }
-        resultHtml += line + '<br>'; // Use <br> instead of \n
-    }
-}
+    result = resultHtml;
 
-if (inList) resultHtml += `</${listType}>`;
-if (inBlockquote) {
-    while (bqLines.length > 0 && bqLines[bqLines.length - 1].trim() === '') bqLines.pop();
-    if (bqLines.length > 0) resultHtml += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
-}
-
-result = resultHtml;
-
-// Remove the trailing <br> so the message doesn't have a weird gap at the bottom
-if (result.endsWith('<br>')) result = result.slice(0, -4);
+    if (result.endsWith('<br>')) result = result.slice(0, -4);
+    
     result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     result = result.replace(/_(.*?)_/g, '<u>$1</u>');
     result = result.replace(/~(.*?)~/g, '<del>$1</del>');
@@ -136,39 +136,12 @@ if (result.endsWith('<br>')) result = result.slice(0, -4);
 
 function normalizeEmojiShortcodes(text) {
     const map = {
-        '🙂': ':slight_smile:',
-        '☺️': ':relaxed:',
-        '☹️': ':frowning:',
-        '💀': ':skull:',
-        '☠️': ':crossbones:',
-        '✌️': ':v:',
-        '☝️': ':index_up:',
-        '✍️': ':writing:',
-        '☀️': ':sun:',
-        '☁️': ':cloud:',
-        '☂️': ':umbrella:',
-        '❄️': ':snowflake:',
-        '☃️': ':snowman_winter:',
-        '⛄️': ':snowman:',
-        '☄️': ':comet:',
-        '♠️': ':spade_card:',
-        '♥️': ':heart_card:',
-        '♦️': ':diamond_card:',
-        '♣️': ':club_card:',
-        '♟️': ':chess:',
-        '♨️': ':hotsprings:',
-        '✈️': ':airplane:',
-        '☎️': ':telephone:',
-        '⌨️': ':keyboard:',
-        '✉️': ':mail:',
-        '✏️': ':pencil:',
-        '✒️': ':nib:',
-        '✂️': ':scissors:',
-        '⌛️': ':hourglass:',
-        '⏳️': ':waiting:',
-        '⌚️': ':watch:',
-        '❣️': ':heart_exclamation:',
-        '❤️': ':heart:'
+        '🙂': ':slight_smile:', '☺️': ':relaxed:', '☹️': ':frowning:', '💀': ':skull:', '☠️': ':crossbones:',
+        '✌️': ':v:', '☝️': ':index_up:', '✍️': ':writing:', '☀️': ':sun:', '☁️': ':cloud:', '☂️': ':umbrella:',
+        '❄️': ':snowflake:', '☃️': ':snowman_winter:', '⛄️': ':snowman:', '☄️': ':comet:', '♠️': ':spade_card:',
+        '♥️': ':heart_card:', '♦️': ':diamond_card:', '♣️': ':club_card:', '♟️': ':chess:', '♨️': ':hotsprings:',
+        '✈️': ':airplane:', '☎️': ':telephone:', '⌨️': ':keyboard:', '✉️': ':mail:', '✏️': ':pencil:', '✒️': ':nib:',
+        '✂️': ':scissors:', '⌛️': ':hourglass:', '⏳️': ':waiting:', '⌚️': ':watch:', '❣️': ':heart_exclamation:', '❤️': ':heart:'
     };
     let result = text;
     for (const [unicode, shortcode] of Object.entries(map)) {
@@ -177,7 +150,6 @@ function normalizeEmojiShortcodes(text) {
     return result;
 }
 
-// ---------- Custom emoji rendering ----------
 let renderCustomEmojis = (text) => text;
 
 // ---------- Reply state ----------
@@ -285,11 +257,8 @@ function setupSearch() {
         searchIconBtn.addEventListener('click', () => {
             mainHeader.style.display = 'none';
             searchHeader.style.display = 'flex';
-            // Force focus to the search input
             setTimeout(() => {
-                if (searchInput) {
-                    searchInput.focus();
-                }
+                if (searchInput) searchInput.focus();
             }, 50);
         });
     }
@@ -422,7 +391,7 @@ const customEmojis = [
     { id: 'rg_active', shortcode: 'active', name: 'Sparkle', category: '❤️' },
     { id: 'rg_copyright', shortcode: 'copyright', name: 'Copyright', category: '❤️' },
     { id: 'rg_registered', shortcode: 'registered', name: 'Registered', category: '❤️' },
-    { id: 'rg_trademark', shortcode: 'trademark', name: 'Trade Mark', category: '❤️' },
+    { id: 'rg_trademark', shortcode: 'trademark', name: 'Trade Mark', category: '❤️' }
 ];
 
 const emojiData = { '🕒': [] };
@@ -461,128 +430,37 @@ renderCustomEmojis = function(text) {
         return match;
     });
     const unicodeMap = {
-        '🙂': 'slight_smile',
-        '☺️': 'relaxed',
-        '☹️': 'frowning',
-        '💀': 'skull',
-        '☠️': 'crossbones',
-        '✌️': 'v',
-        '☝️': 'index_up',
-        '✍️': 'writing',
-        '☀️': 'sun',
-        '☁️': 'cloud',
-        '☂️': 'umbrella',
-        '❄️': 'snowflake',
-        '☃️': 'snowman_winter',
-        '⛄️': 'snowman',
-        '☄️': 'comet',
-        '🎃': 'pumpkin',
-        '♠️': 'spade_card',
-        '♥️': 'heart_card',
-        '♦️': 'diamond_card',
-        '♣️': 'club_card',
-        '♟️': 'chess',
-        '♨️': 'hotsprings',
-        '✈️': 'airplane',
-        '☎️': 'telephone',
-        '⌨️': 'keyboard',
-        '✉️': 'mail',
-        '✏️': 'pencil',
-        '✒️': 'nib',
-        '✂️': 'scissors',
-        '⌛️': 'hourglass',
-        '⏳️': 'waiting',
-        '⌚️': 'watch',
-        '❣️': 'heart_exclamation',
-        '❤️': 'heart',
-        '⬛': 'black_square',
-        '⬜': 'white_square',
-        '◼️': 'black_medium',
-        '◻️': 'white_medium',
-        '◾️': 'black_small',
-        '◽️': 'white_small',
-        '▪️': 'black_tiny',
-        '▫️': 'white_tiny',
-        '☢️': 'radioactive',
-        '☣️': 'biohazard',
-        '⬆️': 'up',
-        '↗️': 'upright',
-        '➡️': 'right',
-        '↘️': 'downright',
-        '⬇️': 'down',
-        '↙️': 'downleft',
-        '⬅️': 'left',
-        '↖️': 'upleft',
-        '↕️': 'updown',
-        '↔️': 'leftright',
-        '↩️': 'undo',
-        '↪️': 'redo',
-        '⤴️': 'upturn',
-        '⤵️': 'downturn',
-        '▶️': 'play',
-        '◀️': 'rewind',
-        '✡️': 'star_david',
-        '☸️': 'dharma',
-        '☯️': 'yinyang',
-        '✝️': 'cross',
-        '☦️': 'orthodox',
-        '☪️': 'islam',
-        '☮️': 'peace',
-        '♈️': 'aries',
-        '♉️': 'taurus',
-        '♊️': 'gemini',
-        '♋️': 'cancer',
-        '♌️': 'leo',
-        '♍️': 'virgo',
-        '♎️': 'libra',
-        '♏️': 'scorpio',
-        '♐️': 'sagittarius',
-        '♑️': 'capricorn',
-        '♒️': 'aquarius',
-        '♓️': 'pisces',
-        '⛎': 'ophiuchus',
-        '♀️': 'female',
-        '♂️': 'male',
-        '✖️': 'multiply',
-        '‼️': 'urgent',
-        '⁉️': 'doubt',
-        '〰️': 'sinewave',
-        '#️⃣': 'hash',
-        '*️⃣': 'asterisk',
-        '0️⃣': 'zero',
-        '1️⃣': 'one',
-        '2️⃣': 'two',
-        '3️⃣': 'three',
-        '4️⃣': 'four',
-        '5️⃣': 'five',
-        '6️⃣': 'six',
-        '7️⃣': 'seven',
-        '8️⃣': 'eight',
-        '9️⃣': 'nine',
-        'ℹ️': 'info',
-        'Ⓜ️': 'm_button',
-        '㊗️': 'congratulations',
-        '㊙️': 'secret',
-        '♻️': 'recycle',
-        '✅': 'check',
-        '☑️': 'checkbox',
-        '✔️': 'checkmark',
-        '〽️': 'zigzag',
-        '✳️': 'required',
-        '✴️': 'focus',
-        '❇️': 'active',
-        '©️': 'copyright',
-        '®️': 'registered',
-        '™️': 'trademark',
+        '🙂': 'slight_smile', '☺️': 'relaxed', '☹️': 'frowning', '💀': 'skull', '☠️': 'crossbones',
+        '✌️': 'v', '☝️': 'index_up', '✍️': 'writing', '☀️': 'sun', '☁️': 'cloud', '☂️': 'umbrella',
+        '❄️': 'snowflake', '☃️': 'snowman_winter', '⛄️': 'snowman', '☄️': 'comet', '🎃': 'pumpkin',
+        '♠️': 'spade_card', '♥️': 'heart_card', '♦️': 'diamond_card', '♣️': 'club_card', '♟️': 'chess',
+        '♨️': 'hotsprings', '✈️': 'airplane', '☎️': 'telephone', '⌨️': 'keyboard', '✉️': 'mail',
+        '✏️': 'pencil', '✒️': 'nib', '✂️': 'scissors', '⌛️': 'hourglass', '⏳️': 'waiting',
+        '⌚️': 'watch', '❣️': 'heart_exclamation', '❤️': 'heart', '⬛': 'black_square', '⬜': 'white_square',
+        '◼️': 'black_medium', '◻️': 'white_medium', '◾️': 'black_small', '◽️': 'white_small',
+        '▪️': 'black_tiny', '▫️': 'white_tiny', '☢️': 'radioactive', '☣️': 'biohazard',
+        '⬆️': 'up', '↗️': 'upright', '➡️': 'right', '↘️': 'downright', '⬇️': 'down', '↙️': 'downleft',
+        '⬅️': 'left', '↖️': 'upleft', '↕️': 'updown', '↔️': 'leftright', '↩️': 'undo', '↪️': 'redo',
+        '⤴️': 'upturn', '⤵️': 'downturn', '▶️': 'play', '◀️': 'rewind', '✡️': 'star_david', '☸️': 'dharma',
+        '☯️': 'yinyang', '✝️': 'cross', '☦️': 'orthodox', '☪️': 'islam', '☮️': 'peace',
+        '♈️': 'aries', '♉️': 'taurus', '♊️': 'gemini', '♋️': 'cancer', '♌️': 'leo', '♍️': 'virgo',
+        '♎️': 'libra', '♏️': 'scorpio', '♐️': 'sagittarius', '♑️': 'capricorn', '♒️': 'aquarius',
+        '♓️': 'pisces', '⛎': 'ophiuchus', '♀️': 'female', '♂️': 'male', '✖️': 'multiply',
+        '‼️': 'urgent', '⁉️': 'doubt', '〰️': 'sinewave', '#️⃣': 'hash', '*️⃣': 'asterisk',
+        '0️⃣': 'zero', '1️⃣': 'one', '2️⃣': 'two', '3️⃣': 'three', '4️⃣': 'four', '5️⃣': 'five',
+        '6️⃣': 'six', '7️⃣': 'seven', '8️⃣': 'eight', '9️⃣': 'nine', 'ℹ️': 'info', 'Ⓜ️': 'm_button',
+        '㊗️': 'congratulations', '㊙️': 'secret', '♻️': 'recycle', '✅': 'check', '☑️': 'checkbox',
+        '✔️': 'checkmark', '〽️': 'zigzag', '✳️': 'required', '✴️': 'focus', '❇️': 'active',
+        '©️': 'copyright', '®️': 'registered', '™️': 'trademark'
     };
     for (const [unicode, shortcode] of Object.entries(unicodeMap)) {
-    const id = shortcodeToId[shortcode];
-    if (id) {
-        const imgTag = `<img src="emojis/${id}.png" class="inline-emoji" alt="${customEmojiMeta[id].name}" title="${customEmojiMeta[id].name}">`;
-        const escaped = unicode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        result = result.replace(new RegExp(escaped, 'g'), imgTag);
+        const id = shortcodeToId[shortcode];
+        if (id) {
+            const imgTag = `<img src="emojis/${id}.png" class="inline-emoji" alt="${customEmojiMeta[id].name}" title="${customEmojiMeta[id].name}">`;
+            const escaped = unicode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            result = result.replace(new RegExp(escaped, 'g'), imgTag);
+        }
     }
-}
     return result;
 };
 
@@ -618,11 +496,11 @@ function detachLongPress() {
         div.removeEventListener('pointerdown', onPointerDown);
         div.removeEventListener('pointermove', onPointerMove);
         div.removeEventListener('pointerup', onPointerUp);
+        div.removeEventListener('pointercancel', onPointerCancel);
     });
     longPressListenersAttached = false;
 }
 
-// ---------- simplified long press (movement does NOT cancel) ----------
 let pressTimer = null;
 let startX = 0, startY = 0;
 const LONG_PRESS_MS = 600;
@@ -642,16 +520,14 @@ function onPointerDown(e) {
     const target = e.currentTarget;
     if (!target) return;
 
-    // 1. Handle Right-Click (Instant Popup)
     if (e.button === 2) {
         e.preventDefault();
         const messageId = parseInt(target.getAttribute('data-id'));
         const currentText = messages.find(m => m.id === messageId)?.text || '';
         showMessageMenu(e.clientX, e.clientY, messageId, currentText);
-        return; // Stop here so we don't start the long-press timer
+        return; 
     }
 
-    // 2. Handle Left-Click / Touch (Long-Press Timer)
     if (e.button !== undefined && e.button !== 0 && e.button !== -1) return;
     if (e.pointerType === 'touch' && e.isPrimary === false) return;
 
@@ -674,19 +550,13 @@ function onPointerDown(e) {
 
 function onPointerMove(e) {
     if (!pressTimer) return;
-    if (Math.abs(e.clientX - startX) > MOVE_THRESHOLD ||
-        Math.abs(e.clientY - startY) > MOVE_THRESHOLD) {
+    if (Math.abs(e.clientX - startX) > MOVE_THRESHOLD || Math.abs(e.clientY - startY) > MOVE_THRESHOLD) {
         cancelLongPress();
     }
 }
 
-function onPointerUp() {
-    cancelLongPress();
-}
-
-function onPointerCancel() {
-    cancelLongPress();
-}
+function onPointerUp() { cancelLongPress(); }
+function onPointerCancel() { cancelLongPress(); }
 
 function attachLongPress() {
     if (!longPressEnabled) return;
@@ -702,16 +572,6 @@ function attachLongPress() {
         div.addEventListener('pointercancel', onPointerCancel);
     });
     longPressListenersAttached = true;
-}
-
-function detachLongPress() {
-    document.querySelectorAll('.message').forEach(div => {
-        div.removeEventListener('pointerdown', onPointerDown);
-        div.removeEventListener('pointermove', onPointerMove);
-        div.removeEventListener('pointerup', onPointerUp);
-        div.removeEventListener('pointercancel', onPointerCancel);
-    });
-    longPressListenersAttached = false;
 }
 
 function setupEmojiPicker() {
@@ -852,12 +712,10 @@ function setupEmojiPicker() {
         });
     }
 
-    // ========== Emoji search input – no auto‑focus ==========
     if (emojiSearch) {
         emojiSearch.removeAttribute('readonly');
         emojiSearch.style.pointerEvents = 'auto';
         
-        // Ensure it receives focus only when tapped (no auto-focus)
         const focusSearch = (e) => {
             e.stopPropagation();
             emojiSearch.focus();
@@ -983,7 +841,6 @@ function setupEmojiPicker() {
             renderGrid(emojiData[activeCategory]);
             resetPreview();
             if (categoriesObserver) categoriesObserver.observe(categoriesEl, { attributes: true, subtree: true });
-            // *** NO AUTOMATIC FOCUS *** – removed the setTimeout that focused the search input
         } else {
             picker.style.display = 'none';
             isOpen = false;
@@ -1010,9 +867,13 @@ function setupSettings() {
     const fontSizeSelect = document.getElementById('fontSizeSelect');
     const settingsVersionSpan = document.getElementById('settingsVersion');
     const versionFooter = document.getElementById('versionNumber');
-    const themeToggle = document.getElementById('themeToggle');
 
     if (!settingsBtn || !settingsModal) return;
+
+    // Purge old theme data so no one gets stuck in Halloween/Bluegather
+    if (localStorage.getItem('roomgather_theme')) {
+        localStorage.removeItem('roomgather_theme');
+    }
 
     function updateUI() {
         if (fontSizeSelect) fontSizeSelect.value = settings.fontSize;
@@ -1043,27 +904,7 @@ function setupSettings() {
     window.addEventListener('click', (e) => {
         if (e.target === settingsModal) settingsModal.style.display = 'none';
     });
-
-    // --- Halloween Theme Toggle Logic ---
-    const currentTheme = localStorage.getItem('roomgather_theme');
-    if (currentTheme === 'halloween') {
-        document.body.setAttribute('data-theme', 'halloween');
-        if (themeToggle) themeToggle.checked = true;
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.body.setAttribute('data-theme', 'halloween');
-                localStorage.setItem('roomgather_theme', 'halloween');
-            } else {
-                document.body.removeAttribute('data-theme');
-                localStorage.setItem('roomgather_theme', 'midnight');
-            }
-        });
-    }
-} 
-// End of setupSettings (The crucial missing brace is right above this line)
+}
 
 function isInteractionBlocked() {
     return !!(document.querySelector('.inline-edit-input') ||
@@ -1072,8 +913,6 @@ function isInteractionBlocked() {
         (document.getElementById('settingsModal') && document.getElementById('settingsModal').style.display === 'flex') ||
         (document.getElementById('emojiPicker') && document.getElementById('emojiPicker').style.display === 'flex'));
 }
-
-function blockContextMenu(e) { e.preventDefault(); e.stopPropagation(); return false; }
 
 function attachScrollCancel() {
     const mc = document.getElementById('messages');
@@ -1095,16 +934,13 @@ function showMessageMenu(x, y, messageId, currentText) {
     menu.className = 'context-menu';
     menu.innerHTML = `
         <div class="context-menu-item reply-item" data-id="${messageId}" data-text="${escapeHtml(currentText)}">
-            <img src="icons/reply.png" width="20" height="20" alt="Reply">
-            Reply
+            <img src="icons/reply.png" width="20" height="20" alt="Reply"> Reply
         </div>
         <div class="context-menu-item edit-item" data-id="${messageId}" data-text="${escapeHtml(currentText)}">
-            <img src="icons/edit.png" width="20" height="20" alt="Edit">
-            Edit
+            <img src="icons/edit.png" width="20" height="20" alt="Edit"> Edit
         </div>
         <div class="context-menu-item copy-item" data-id="${messageId}">
-            <img src="icons/copy.png" width="20" height="20" alt="Copy">
-            Copy
+            <img src="icons/copy.png" width="20" height="20" alt="Copy"> Copy
         </div>
         <div class="context-menu-item bookmark-item" data-id="${messageId}">
             <img src="icons/bookmark.png" width="20" height="20" alt="Bookmark">
@@ -1115,8 +951,7 @@ function showMessageMenu(x, y, messageId, currentText) {
             <span class="pin-label">${pinLabel}</span>
         </div>
         <div class="context-menu-item delete-item" data-id="${messageId}">
-            <img src="icons/reddelete.png" width="20" height="20" alt="Delete">
-            Delete
+            <img src="icons/reddelete.png" width="20" height="20" alt="Delete"> Delete
         </div>
     `;
     
@@ -1130,13 +965,8 @@ function showMessageMenu(x, y, messageId, currentText) {
     let finalX = x;
     let finalY = y;
 
-    if (y + menuHeight > window.innerHeight) {
-        finalY = y - menuHeight;
-    }
-
-    if (x + menuWidth > window.innerWidth) {
-        finalX = x - menuWidth;
-    }
+    if (y + menuHeight > window.innerHeight) { finalY = y - menuHeight; }
+    if (x + menuWidth > window.innerWidth) { finalX = x - menuWidth; }
 
     menu.style.left = `${Math.max(10, finalX)}px`;
     menu.style.top = `${Math.max(10, finalY)}px`;
@@ -1230,7 +1060,6 @@ function renderPinnedBar() {
     const bar = document.getElementById('pinnedBar');
     const count = document.getElementById('pinnedCount');
     const list = document.getElementById('pinnedList');
-    const toggle = document.getElementById('pinnedToggle');
     const header = document.getElementById('pinnedHeader');
     if (!bar || !count || !list) return;
 
@@ -1242,7 +1071,6 @@ function renderPinnedBar() {
     bar.classList.add('visible');
     count.textContent = pinned.length;
 
-    // Restore collapsed state from localStorage
     const collapsed = localStorage.getItem('roomgather_pinned_collapsed') === 'true';
     bar.classList.toggle('collapsed', collapsed);
 
@@ -1253,7 +1081,6 @@ function renderPinnedBar() {
         return `<div class="pinned-item" data-id="${m.id}"><img src="icons/pin.png" width="14" height="14" alt="Pinned" class="pin-icon"><span class="pinned-text">${rendered}</span></div>`;
     }).join('');
 
-    // Click a pinned item → scroll to original message
     list.querySelectorAll('.pinned-item').forEach(item => {
         item.addEventListener('click', () => {
             const id = item.getAttribute('data-id');
@@ -1268,7 +1095,6 @@ function renderPinnedBar() {
         });
     });
 
-    // Toggle collapse on header click (only wire once)
     if (header && !header.dataset.wired) {
         header.dataset.wired = 'true';
         header.addEventListener('click', () => {
@@ -1307,7 +1133,6 @@ function setupBookmarks() {
                     return `<div class="bookmark-item" data-id="${m.id}"><img src="icons/bookmark.png" width="14" height="14" style="vertical-align: middle; margin-right: 6px;"> ${rendered}</div>`;
                 }).join('');
                 
-                // Scroll to message on click
                 bookmarksList.querySelectorAll('.bookmark-item').forEach(item => {
                     item.addEventListener('click', () => {
                         bookmarksModal.style.display = 'none';
@@ -1388,9 +1213,12 @@ function addMessage(text) {
     saveMessages();
     displayMessages();
     const input = document.getElementById('messageInput');
-    if (input) { input.value = '';
-    localStorage.removeItem('roomgather_draft');
-    updateCharCounter(); input.focus(); }
+    if (input) { 
+        input.value = '';
+        localStorage.removeItem('roomgather_draft');
+        updateCharCounter(); 
+        input.focus(); 
+    }
 }
 
 // ---------- admin access ----------
@@ -1414,11 +1242,10 @@ if (versionFooter) {
     versionFooter.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-// ---------- send button ----------
+// ---------- send button & drafts ----------
 const sendBtn = document.getElementById('sendBtn');
 const messageInputElem = document.getElementById('messageInput');
 
-// 1. Restore draft on load
 if (messageInputElem) {
     const savedDraft = localStorage.getItem('roomgather_draft');
     if (savedDraft) {
@@ -1427,7 +1254,6 @@ if (messageInputElem) {
     }
 }
 
-// 2. Save draft on input (and update counter)
 if (messageInputElem) {
     messageInputElem.addEventListener('input', (e) => {
         localStorage.setItem('roomgather_draft', e.target.value);

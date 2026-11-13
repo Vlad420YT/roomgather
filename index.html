@@ -34,17 +34,17 @@
             <button id="clearSearchBtn" class="clear-search">✕</button>
         </div>
 
-<!-- Pinned bar -->
-<div class="pinned-bar" id="pinnedBar">
-    <div class="pinned-header" id="pinnedHeader">
-        <span style="display: flex; align-items: center; gap: 6px;">
-            <img src="icons/pin.png" width="14" height="14" alt="Pinned" style="image-rendering: pixelated;">
-            <span id="pinnedCount">0</span> pinned
-        </span>
-        <span class="pinned-toggle" id="pinnedToggle">▾</span>
-    </div>
-    <div id="pinnedList"></div>
-</div>
+        <!-- Pinned bar -->
+        <div class="pinned-bar" id="pinnedBar">
+            <div class="pinned-header" id="pinnedHeader">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <img src="icons/pin.png" width="14" height="14" alt="Pinned" style="image-rendering: pixelated;">
+                    <span id="pinnedCount">0</span> pinned
+                </span>
+                <span class="pinned-toggle" id="pinnedToggle">▾</span>
+            </div>
+            <div id="pinnedList"></div>
+        </div>
 
         <div class="messages" id="messages"></div>
 
@@ -101,21 +101,14 @@
                         <option value="15" selected>Medium (15px)</option>
                         <option value="17">Large (17px)</option>
                     </select>
-                    
                 </div>
-                                    <div class="setting-item">
-    <label>Halloween Theme</label>
-    <label class="toggle-switch">
-        <input type="checkbox" id="themeToggle">
-        <span class="toggle-slider"></span>
-    </label>
-</div>
+                
                 <div class="setting-item export-item">
                     <button id="settingsExportBtn" class="settings-export-btn">Export Chat (.txt)</button>
                 </div>
                 <div class="setting-item version-item">
                     <label>Version</label>
-                    <span id="settingsVersion" class="version-text">v0.17</span>
+                    <span id="settingsVersion" class="version-text">v0.18</span>
                 </div>
             </div>
             <div class="modal-footer">
@@ -161,7 +154,7 @@
         </div>
     </div>
 
-    <div class="footer-version" id="versionNumber">v0.17</div>
+    <div class="footer-version" id="versionNumber">v0.18</div>
 
     <script src="script.js"></script>
 </body>
